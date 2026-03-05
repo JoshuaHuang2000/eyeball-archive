@@ -5,24 +5,17 @@ hero:
   name: "EYEBALL ARCHIVE"
   text: "观测者终端"
   tagline: "在宇宙的绝对真空与物理法则面前，人类唯一的武器是理性的妥协与工程的奇迹。"
-  actions:
-    - theme: brand
-      text: 开启档案解密
-      link: /lore/the-birth-of-suns
-    - theme: alt
-      text: 查看概念白皮书
-      link: /lore/gen-1-blueprint
+  actions: 
+  - theme: brand text: 普罗米修斯计划解密 link: /prometheus/lore/the-birth-of-suns 
+  - theme: alt text: 航空与工程学笔记 link: /aviation/how-planes-fly
 
-features:
-  - title: 核心世界观 (Lore)
-    details: 从初代“天照号”的艰难孕育，到月球工业革命的崛起。记录人类向 I 型文明跨越的编年史。
-    link: /lore/the-birth-of-suns
-  - title: 工程与事故日志 (Incidents)
-    details: 毫秒级的金融绞肉机、第一阶段的巴别塔。在极致的工业齿轮下，脆弱的人性与冰冷的法则。
-    link: /incidents/the-handoff
-  - title: 前沿技术提案 (Tech)
-    details: 抛弃传统的刚性隔热，挑战柔性充气防热盾。硬核物理学与航天工程的跨学科推演。
-    link: /tech/starship-f-tps
+  features:
+
+  -   title: 普罗米修斯-以太计划 details: 记录人类向 I 型文明跨越的编年史。从初代“天照号”的艰难孕育，到月球工业革命的崛起。 link: /prometheus/lore/the-birth-of-suns
+    
+  -   title: 灾难与工程日志 details: 毫秒级的金融绞肉机、第一阶段的巴别塔。在极致的工业齿轮下，脆弱的人性与冰冷的法则。 link: /prometheus/incidents/the-babel
+    
+  -   title: 航空与工程学笔记 (New) details: 抛开科幻的滤镜，回归真实的物理。隐身技术的几何骗局、气动设计的妥协与飞行原理的本质。 link: /aviation/stealth-misconceptions
 ---
 
 <style>
