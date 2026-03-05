@@ -1,14 +1,3 @@
-layout: home
-hero:
-name: "EYEBALL ARCHIVE"
-text: "观测者终端"
-tagline: "在宇宙的绝对真空与物理法则面前，人类唯一的武器是理性的妥协与工程的奇迹。"
-actions:
-- theme: brand
-text: 开启档案解密
-link: /lore/the-birth-of-suns
-- theme: alt
-text: 查看概念白皮书
 ---
 layout: home
 
