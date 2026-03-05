@@ -6,8 +6,12 @@ hero:
   text: "观测者终端"
   tagline: "在宇宙的绝对真空与物理法则面前，人类唯一的武器是理性的妥协与工程的奇迹。"
   actions: 
-  - theme: brand text: 普罗米修斯计划解密 link: /prometheus/lore/the-birth-of-suns 
-  - theme: alt text: 航空与工程学笔记 link: /aviation/how-planes-fly
+  - theme: brand 
+    - text: 普罗米修斯计划解密 
+    - link: /prometheus/lore/the-birth-of-suns 
+  - theme: alt 
+    - text: 航空与工程学笔记 
+    - link: /aviation/how-planes-fly
 
   features:
 
