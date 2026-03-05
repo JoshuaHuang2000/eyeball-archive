@@ -1,0 +1,10 @@
+{
+  "name": "eyeball-archive",
+  "scripts": {
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs"
+  },
+  "devDependencies": {
+    "vitepress": "^3.2.0"
+  }
+}
