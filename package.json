@@ -5,6 +5,6 @@
     "docs:build": "vitepress build docs"
   },
   "devDependencies": {
-    "vitepress": "^3.2.0"
+    "vitepress": "latest"
   }
 }
