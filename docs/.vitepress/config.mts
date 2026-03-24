@@ -10,7 +10,8 @@ export default defineConfig({
     nav: [
       { text: '主终端', link: '/' },
       { text: '普罗米修斯-以太计划', link: '/prometheus/lore/the-birth-of-suns' },
-      { text: '航空与工程学笔记', link: '/aviation/stealth-misconceptions' }
+      { text: '航空与工程学笔记', link: '/aviation/stealth-misconceptions' },
+      { text: '评注与书评', link: '/commentary/hail-mary' }
     ],
 
     // 左侧目录树 (采用对象结构，实现双区隔离)
@@ -41,6 +42,17 @@ export default defineConfig({
           collapsed: false,
           items: [
             { text: '星舰柔性辐射防热盾系统 (F-TPS)', link: '/prometheus/tech/starship-f-tps' }
+          ]
+        }
+      ],
+
+      // 扇区 Gamma：当网址带有 /commentary/ 时，显示评注侧边栏
+      '/commentary/': [
+        {
+          text: '📝 评注与书评',
+          collapsed: false,
+          items: [
+            { text: '《挽救计划》核心硬伤与替代方案推演', link: '/commentary/hail-mary' }
           ]
         }
       ],
