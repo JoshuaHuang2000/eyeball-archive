@@ -9,9 +9,12 @@ hero:
    - theme: brand 
      text: 普罗米修斯计划解密 
      link: /prometheus/lore/the-birth-of-suns 
-   - theme: alt 
-     text: 航空与工程学笔记 
+   - theme: alt
+     text: 航空与工程学笔记
      link: /aviation/how-planes-fly
+   - theme: alt
+     text: 评注与书评
+     link: /commentary/hail-mary
 
 features:
   - title: 普罗米修斯-以太计划 
@@ -20,9 +23,12 @@ features:
   - title: 灾难与工程日志 
     details: 毫秒级的金融绞肉机、第一阶段的巴别塔。在极致的工业齿轮下，脆弱的人性与冰冷的法则。 
     link: /prometheus/incidents/the-babel
-  - title: 航空与工程学笔记 (New) 
-    details: 抛开科幻的滤镜，回归真实的物理。隐身技术的几何骗局、气动设计的妥协与飞行原理的本质。 
+  - title: 航空与工程学笔记 (New)
+    details: 抛开科幻的滤镜，回归真实的物理。隐身技术的几何骗局、气动设计的妥协与飞行原理的本质。
     link: /aviation/stealth-misconceptions
+  - title: 评注与书评
+    details: 基于硬科幻的物理法则，推演原著的替代可能。《挽救计划》的行星工程逻辑崩盘与组织工程学谬误。
+    link: /commentary/hail-mary
 ---
 
 <style>
