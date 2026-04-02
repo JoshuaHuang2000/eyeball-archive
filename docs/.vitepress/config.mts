@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 
 export default defineConfig({
   title: "EYEBALL ARCHIVE",
-  description: "观测者终端 / 机密档案库",
+  description: "观测者终端",
   appearance: 'dark',
 
   themeConfig: {
@@ -26,7 +26,7 @@ export default defineConfig({
             { text: '第1阶段：前五座“人造太阳”的诞生', link: '/prometheus/lore/the-birth-of-suns' },
             { text: '第2阶段：月球工业革命的崛起', link: '/prometheus/lore/lunar-industrial-revolution' },
             { text: '时代专题：追逐太阳-一块光伏瓦的三万六千公里奥德赛', link: '/prometheus/lore/pv-odyssey'},
-            { text: '绝密：初代太空电站构想白皮书', link: '/prometheus/lore/gen-1-blueprint' }
+            { text: '初代太空电站构想白皮书', link: '/prometheus/lore/gen-1-blueprint' }
           ]
         },
         {
