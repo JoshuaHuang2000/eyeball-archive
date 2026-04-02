@@ -11,7 +11,8 @@ export default defineConfig({
       { text: '主终端', link: '/' },
       { text: '普罗米修斯-以太计划', link: '/prometheus/lore/the-birth-of-suns' },
       { text: '航空与工程学笔记', link: '/aviation/stealth-misconceptions' },
-      { text: '评注与书评', link: '/commentary/hail-mary' }
+      { text: '评注与书评', link: '/commentary/hail-mary' },
+      { text: '客座文章', link: '/guest-articles/iran-nuclear-program-1' }
     ],
 
     // 左侧目录树 (采用对象结构，实现双区隔离)
@@ -53,6 +54,17 @@ export default defineConfig({
           collapsed: false,
           items: [
             { text: '《挽救计划》核心硬伤与替代方案推演', link: '/commentary/hail-mary' }
+          ]
+        }
+      ],
+
+      // 扇区 Delta：当网址带有 /guest-articles/ 时，显示客座文章侧边栏
+      '/guest-articles/': [
+        {
+          text: '📰 客座文章',
+          collapsed: false,
+          items: [
+            { text: '伊朗核计划到底怎么回事？(上)', link: '/guest-articles/iran-nuclear-program-1' }
           ]
         }
       ],

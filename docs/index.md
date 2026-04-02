@@ -15,6 +15,9 @@ hero:
    - theme: alt
      text: 评注与书评
      link: /commentary/hail-mary
+   - theme: alt
+     text: 客座文章
+     link: /guest-articles/iran-nuclear-program-1
 
 features:
   - title: 普罗米修斯-以太计划 
@@ -29,6 +32,9 @@ features:
   - title: 评注与书评
     details: 基于硬科幻的物理法则，推演原著的替代可能。《挽救计划》的行星工程逻辑崩盘与组织工程学谬误。
     link: /commentary/hail-mary
+  - title: 客座文章 (New)
+    details: 来自外部作者的深度分析。伊朗核计划的五步路径、工业基础与地缘博弈。
+    link: /guest-articles/iran-nuclear-program-1
 ---
 
 <style>
