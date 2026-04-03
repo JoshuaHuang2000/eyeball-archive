@@ -12,7 +12,8 @@ export default defineConfig({
       { text: '普罗米修斯-以太计划', link: '/prometheus/lore/the-birth-of-suns' },
       { text: '航空与工程学笔记', link: '/aviation/stealth-misconceptions' },
       { text: '评注与书评', link: '/commentary/hail-mary' },
-      { text: '客座文章', link: '/guest-articles/iran-nuclear-program-1' }
+      { text: '客座文章', link: '/guest-articles/iran-nuclear-program-1' },
+      { text: '小工具', link: '/tools/aero-performance-calculator' }
     ],
 
     // 左侧目录树 (采用对象结构，实现双区隔离)
@@ -65,6 +66,17 @@ export default defineConfig({
           collapsed: false,
           items: [
             { text: '伊朗核计划到底怎么回事？(上)', link: '/guest-articles/iran-nuclear-program-1' }
+          ]
+        }
+      ],
+
+      // 扇区 Epsilon：当网址带有 /tools/ 时，显示小工具侧边栏
+      '/tools/': [
+        {
+          text: '🔧 小工具',
+          collapsed: false,
+          items: [
+            { text: '航空性能计算器', link: '/tools/aero-performance-calculator' }
           ]
         }
       ],
