@@ -4,7 +4,7 @@
 
 <div style="width: 100%; overflow: hidden;">
   <iframe
-    src="/tools/aero-performance-calculator.html"
+    src="/tools/aero-calculator-app.html"
     style="width: 100%; height: 85vh; border: none; border-radius: 8px;"
     loading="lazy"
     sandbox="allow-scripts allow-downloads allow-same-origin"
