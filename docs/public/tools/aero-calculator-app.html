@@ -104,8 +104,6 @@
       B2: "B-2"
     };
 
-    const B2_CONVERSION_FACTOR = 11000 / 11;
-
     const ALTITUDE_OPTIONS = [
       "0 m", "9144 m", "12192 m", "15240 m", "16764 m", "18288 m"
     ];
@@ -329,7 +327,8 @@
 
     function calculateAeroPerformance(cdi, cfNorm, cl) {
       if (cdi === null || cfNorm === null || cl === null) return { cd: null, ld: null };
-      const cd = (cdi + cfNorm) / 0.85;
+      const cd0 = cfNorm * 1.4;
+      const cd = (cd0 + cdi) * 1.1;
       const ld = cd > 0 ? cl / cd : null;
       return { cd, ld };
     }
@@ -352,21 +351,27 @@
       return { inbound, outbound };
     }
 
-    function calculateRanges(mtow, inboundFuel, outboundFuel, payload, tsfc, ldCruise) {
-      if (mtow === null || inboundFuel === null || outboundFuel === null || ldCruise === null || tsfc <= 0) {
+    function calculateRanges(mtow, inboundFuel, outboundFuel, payload, tsfc, ldCruise, cruiseSpeedMs) {
+      if (mtow === null || inboundFuel === null || outboundFuel === null || ldCruise === null || tsfc <= 0 || cruiseSpeedMs <= 0) {
         return { inboundRange: null, outboundRange: null, realRange: null };
       }
+      const cruiseSpeedKmh = cruiseSpeedMs * 3.6;
       let inboundRange = null;
       if (mtow > (mtow - inboundFuel) && (mtow - inboundFuel) > 0) {
-         inboundRange = (Math.log(mtow / (mtow - inboundFuel)) / tsfc) * ldCruise;
+         inboundRange = (cruiseSpeedKmh / tsfc) * ldCruise * Math.log(mtow / (mtow - inboundFuel));
       }
       let outboundRange = null;
       const wStartOut = mtow - inboundFuel - payload;
       const wEndOut = wStartOut - outboundFuel;
       if (wStartOut > wEndOut && wEndOut > 0) {
-        outboundRange = (Math.log(wStartOut / wEndOut) / tsfc) * ldCruise;
+        outboundRange = (cruiseSpeedKmh / tsfc) * ldCruise * Math.log(wStartOut / wEndOut);
       }
-      const realRange = inboundRange !== null ? inboundRange * B2_CONVERSION_FACTOR : null;
+      let realRange = null;
+      if (inboundRange !== null && outboundRange !== null) {
+        realRange = inboundRange + outboundRange;
+      } else if (inboundRange !== null) {
+        realRange = inboundRange;
+      }
       return { inboundRange, outboundRange, realRange };
     }
 
@@ -386,7 +391,8 @@
 
       let cd = null;
       if (cdi !== null && cfCruiseNorm !== null) {
-        cd = (cdi + cfCruiseNorm) / 0.85;
+        const cd0 = cfCruiseNorm * 1.4;
+        cd = (cd0 + cdi) * 1.1;
       }
 
       let ld = null;
@@ -563,6 +569,7 @@
       const [takeoffSpeedKnots, setTakeoffSpeedKnots] = useState(150);
       const [cruiseMach, setCruiseMach] = useState(0.8);
       const [fNLF, setFNLF] = useState(0);
+      const [missionFuelFraction, setMissionFuelFraction] = useState(0.85);
 
       const [simParams, setSimParams] = useState({
         altitude: "0 m",
@@ -593,6 +600,7 @@
       const defTakeoffSpeedKnots = useDeferredValue(takeoffSpeedKnots);
       const defCruiseMach = useDeferredValue(cruiseMach);
       const defFNLF = useDeferredValue(fNLF);
+      const defMissionFuelFraction = useDeferredValue(missionFuelFraction);
 
       const defSimParams = useDeferredValue(simParams);
 
@@ -696,8 +704,8 @@
 
       const rhoTakeoff = ATMOSPHERE_LOOKUP["0 m"].density;
       
-      const cruiseWeightTons = (weights.structure !== null && weights.fuel !== null) 
-        ? weights.structure + 0.5 * defPayloadWeight + 0.5 * weights.fuel 
+      const cruiseWeightTons = (weights.structure !== null && weights.fuel !== null)
+        ? weights.structure + engineTotals.totalWeight + 0.5 * defPayloadWeight + 0.5 * weights.fuel
         : null;
 
       const cl = useMemo(() => calculateCL(
@@ -719,8 +727,9 @@
       const thrustReqTakeoff = calculateThrustReq(engineTotals.totalThrust, rhoTakeoff, rhoTakeoff, mtow, perfTakeoff.ld);
       const thrustReqCruise = calculateThrustReq(engineTotals.totalThrust, atm.density, rhoTakeoff, cruiseWeightTons, perfCruise.ld);
 
-      const fuelSplits = calculateRangeFuels(defPayloadWeight, mtow, weights.fuel);
-      const ranges = calculateRanges(mtow, fuelSplits.inbound, fuelSplits.outbound, defPayloadWeight, engineParams.tsfc, perfCruise.ld);
+      const cruiseFuel = weights.fuel !== null ? weights.fuel * defMissionFuelFraction : null;
+      const fuelSplits = calculateRangeFuels(defPayloadWeight, mtow, cruiseFuel);
+      const ranges = calculateRanges(mtow, fuelSplits.inbound, fuelSplits.outbound, defPayloadWeight, engineParams.tsfc, perfCruise.ld, speeds.cruise);
 
       const simResults = useMemo(() => calculateSimulation(
         defSimParams, activeAero.wingArea, activeAero.aspectRatio, activeAero.oswaldFactor, cfCruiseNorm, engineTotals.totalThrust
@@ -760,14 +769,20 @@
                   onChange={setEngineType} 
                 />
                 
-                {engineType === EngineType.Custom && (
+                {engineType === EngineType.Custom ? (
                   <div className="pl-2 border-l-2 border-slate-700 space-y-3 pt-2">
                     <SliderControl label="Weight (ton)" value={customEngine.weight} min={1} max={10} step={0.1} onChange={(v) => setCustomEngine({...customEngine, weight: v})} />
                     <SliderControl label="Thrust (ton)" value={customEngine.thrust} min={3} max={50} step={0.1} onChange={(v) => setCustomEngine({...customEngine, thrust: v})} />
                     <SliderControl label="TSFC (kg*s/ton)" value={customEngine.tsfc} min={0.3} max={1} step={0.01} onChange={(v) => setCustomEngine({...customEngine, tsfc: v})} />
                   </div>
+                ) : (
+                  <div className="space-y-1 mt-2">
+                    <ResultRow label="Weight" value={engineParams.weight} unit="ton" />
+                    <ResultRow label="Thrust" value={engineParams.thrust} unit="ton" />
+                    <ResultRow label="TSFC" value={engineParams.tsfc} unit="ton·h/ton" />
+                  </div>
                 )}
-                
+
                 <ResultRow label="Total Thrust" value={engineTotals.totalThrust} unit="tons" />
               </Section>
 
@@ -888,8 +903,9 @@
                   </div>
 
                   <SliderControl label="Takeoff Speed (knots)" value={takeoffSpeedKnots} min={50} max={300} step={1} onChange={setTakeoffSpeedKnots} />
-                  <SliderControl label="Cruise Mach" value={cruiseMach} min={0.3} max={3} step={0.01} onChange={setCruiseMach} />
+                  <SliderControl label="Cruise Mach" value={cruiseMach} min={0.3} max={1} step={0.01} onChange={setCruiseMach} />
                   <SliderControl label="Laminar Flow (fNLF)" value={fNLF} min={0} max={1} step={0.01} onChange={setFNLF} />
+                  <SliderControl label="Mission Fuel Fraction" value={missionFuelFraction} min={0} max={1} step={0.01} onChange={setMissionFuelFraction} />
               </Section>
             </div>
 
@@ -947,7 +963,7 @@
                   <div className="h-px bg-slate-800 my-2" />
                   <ResultRow label="Calculated Range" value={ranges.realRange} unit="km" highlight status="success" />
                   <p className="text-xs text-slate-500 mt-2 italic">
-                    *Based on Breguet range eq. with B-2 conversion factor.
+                    *Based on Breguet range eq. Mission fuel fraction accounts for non-cruise fuel burn.
                   </p>
               </Section>
             </div>
