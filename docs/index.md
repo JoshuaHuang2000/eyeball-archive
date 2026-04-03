@@ -18,6 +18,9 @@ hero:
    - theme: alt
      text: 客座文章
      link: /guest-articles/iran-nuclear-program-1
+   - theme: alt
+     text: 小工具
+     link: /tools/aero-performance-calculator
 
 features:
   - title: 普罗米修斯-以太计划 
@@ -32,6 +35,9 @@ features:
   - title: 客座文章 (New)
     details: 来自外部作者的深度分析。伊朗核计划的五步路径、工业基础与地缘博弈。
     link: /guest-articles/iran-nuclear-program-1
+  - title: 小工具
+    details: 实用工程计算器集合。航空性能估算、飞翼构型分析等。
+    link: /tools/aero-performance-calculator
 ---
 
 <style>
