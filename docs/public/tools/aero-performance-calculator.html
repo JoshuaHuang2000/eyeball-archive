@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stealth Aero Performance</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- React & ReactDOM (UMD Globals) -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- Babel Standalone -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    body { background-color: #020617; color: #e2e8f0; font-family: ui-sans-serif, system-ui, sans-serif; }
+  </style>
+
+  <!-- Error Trap: Shows errors on screen if React fails to load -->
+  <script>
+    window.onerror = function(message, source, lineno, colno, error) {
+      const root = document.getElementById('root');
+      if(root) {
+        root.innerHTML = `
+          <div style="color: #ef4444; background: #1e293b; padding: 20px; margin: 20px; border-radius: 8px; border: 1px solid #7f1d1d; font-family: monospace;">
+            <h3 style="margin-top:0">Application Error</h3>
+            <p>${message}</p>
+            <p style="font-size: 0.8em; color: #94a3b8;">Line: ${lineno} | Source: ${source}</p>
+          </div>
+        `;
+      }
+    };
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    // --- GLOBALS ---
+    const { useState, useMemo, useEffect, useDeferredValue } = React;
+    const { createRoot } = ReactDOM;
+
+    // --- ICONS (SVG Path Strings) ---
+    const ICON_PATHS = {
+      Plane: "M2 12h20M2 12l5-5M2 12l5 5M12 2l10 10-10 10",
+      Settings: "M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+      Scale: "m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z M7 21h10 M12 3v18 M6 7h12",
+      Gauge: "m12 14 4-4 M3.34 17.66A10 10 0 1 1 20.66 17.66",
+      Wind: "M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2 M9.6 4.6A2 2 0 1 1 11 8H2 M12.6 19.4A2 2 0 1 0 14 16H2",
+      Activity: "M22 12h-4l-3 9L9 3l-3 9H2",
+      TrendingUp: "m22 7-8.5 8.5-5-5L2 17 M16 7h6v6",
+      Database: "M21 12c0 1.66-4 3-9 3s-9-1.34-9-3 M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5 M21 12c0 1.66-4 3-9 3s-9-1.34-9-3",
+      Upload: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4 M17 8l-5-5-5 5 M12 3v12",
+      Download: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4 M7 10l5 5 5-5 M12 15V3",
+      Info: "M12 16v-4 M12 8h.01 M22 12c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2s10 4.48 10 10z"
+    };
+
+    const Icon = ({ path, size = 18, className = "" }) => (
+      <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        width={size} 
+        height={size} 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="2" 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+        className={className}
+      >
+        <path d={path} />
+      </svg>
+    );
+
+    // --- CONSTANTS ---
+    const EngineType = {
+      F135: "F135",
+      PW800: "PW800",
+      F118: "F118",
+      Custom: "Custom Engine"
+    };
+
+    const WeightPreset = {
+      Custom: "Custom",
+      B2: "B-2 (0.206)"
+    };
+
+    const AeroPreset = {
+      Custom: "Custom",
+      B2: "B-2",
+      B21: "B-21"
+    };
+
+    const StructurePreset = {
+      Custom: "Custom",
+      B2: "B-2"
+    };
+
+    const B2_CONVERSION_FACTOR = 11000 / 11;
+
+    const ALTITUDE_OPTIONS = [
+      "0 m", "9144 m", "12192 m", "15240 m", "16764 m", "18288 m"
+    ];
+
+    const ATMOSPHERE_LOOKUP = {
+      "0 m": { density: 1.22553, viscosity: 0.00001789, speedOfSound: 340 },
+      "9144 m": { density: 0.459774, viscosity: 0.00001493, speedOfSound: 294 },
+      "12192 m": { density: 0.302778, viscosity: 0.00001422, speedOfSound: 294 },
+      "15240 m": { density: 0.187434, viscosity: 0.00001422, speedOfSound: 294 },
+      "16764 m": { density: 0.1467432, viscosity: 0.00001422, speedOfSound: 294 },
+      "18288 m": { density: 0.1164654, viscosity: 0.00001422, speedOfSound: 294 },
+    };
+
+    const ENGINE_PRESETS = {
+      "F135": { weight: 1.5, thrust: 12, tsfc: 0.87 },
+      "PW800": { weight: 1.422, thrust: 8.2, tsfc: 0.52 },
+      "F118": { weight: 1.5, thrust: 8.5, tsfc: 0.84 },
+      "TF33": { weight: 2.1, thrust: 7.6, tsfc: 0.66 },
+      "D30KP2": { weight: 2.64, thrust: 11.8, tsfc: 0.64 },
+      "AE 3007": { weight: 0.762, thrust: 4, tsfc: 0.57 },
+      "FJ44-4": { weight: 0.298, thrust: 1.6, tsfc: 0.65 },
+    };
+
+    const AERO_PRESETS = {
+      "B-2": { wingArea: 478, aspectRatio: 5.74, wetWingRatio: 2.2, oswaldFactor: 0.89 },
+      "B-21": { wingArea: 375, aspectRatio: 6.36, wetWingRatio: 2.2, oswaldFactor: 0.89 },
+    };
+
+    const B2_STRUCTURE_FRACTION = 0.406;
+
+    const INITIAL_AIRFRAMES = {
+      "B-2 Spirit": {
+        wingArea: 478, aspectRatio: 5.74, wetWingRatio: 2.2, oswaldFactor: 0.89,
+        structureMassFraction: 0.406, thrustToWeightRatio: 0.206, numEngines: 4
+      },
+      "B-21 Raider (Est.)": {
+        wingArea: 375, aspectRatio: 6.36, wetWingRatio: 2.2, oswaldFactor: 0.89,
+        structureMassFraction: 0.39, thrustToWeightRatio: 0.22, numEngines: 2
+      },
+      "B-52": {
+        wingArea: 370, aspectRatio: 8.56, wetWingRatio: 3.9, oswaldFactor: 0.95,
+        structureMassFraction: 0.30, thrustToWeightRatio: 0.31, numEngines: 8
+      },
+      "H-6K": {
+        wingArea: 165, aspectRatio: 6.6, wetWingRatio: 4.4, oswaldFactor: 0.95,
+        structureMassFraction: 0.34, thrustToWeightRatio: 0.25, numEngines: 2
+      },
+      "J-36": {
+        wingArea: 198, aspectRatio: 2.2, wetWingRatio: 2.5, oswaldFactor: 0.9,
+        structureMassFraction: 0.404, thrustToWeightRatio: 0.42, numEngines: 3
+      },
+      "RQ-180": {
+        wingArea: 51.7, aspectRatio: 10.4, wetWingRatio: 2.2, oswaldFactor: 0.89,
+        structureMassFraction: 0.30, thrustToWeightRatio: 0.2, numEngines: 2
+      },
+      "H-20": {
+        wingArea: 386, aspectRatio: 4.72, wetWingRatio: 2.2, oswaldFactor: 0.89,
+        structureMassFraction: 0.39, thrustToWeightRatio: 0.22, numEngines: 2
+      }
+    };
+
+    const SORTED_ALTITUDES = [0, 9144, 12192, 15240, 16764, 18288];
+
+    // --- UTILS ---
+    
+    function interpolateAtmosphere(altitude) {
+      const minAlt = SORTED_ALTITUDES[0];
+      const maxAlt = SORTED_ALTITUDES[SORTED_ALTITUDES.length - 1];
+      
+      let clampedAlt = altitude;
+      if (altitude < minAlt) clampedAlt = minAlt;
+      if (altitude > maxAlt) clampedAlt = maxAlt;
+
+      let i = 0;
+      while (i < SORTED_ALTITUDES.length - 1 && clampedAlt > SORTED_ALTITUDES[i+1]) {
+        i++;
+      }
+
+      const alt1 = SORTED_ALTITUDES[i];
+      const alt2 = SORTED_ALTITUDES[i+1];
+      
+      if (alt1 === alt2) return ATMOSPHERE_LOOKUP[`${alt1} m`];
+
+      const data1 = ATMOSPHERE_LOOKUP[`${alt1} m`];
+      const data2 = ATMOSPHERE_LOOKUP[`${alt2} m`];
+
+      const t = (clampedAlt - alt1) / (alt2 - alt1);
+
+      const density = data1.density * Math.pow(data2.density / data1.density, t);
+      const viscosity = data1.viscosity + t * (data2.viscosity - data1.viscosity);
+      const speedOfSound = data1.speedOfSound + t * (data2.speedOfSound - data1.speedOfSound);
+
+      return { density, viscosity, speedOfSound };
+    }
+
+    function getEngineParams(type, custom, db) {
+      if (type === EngineType.Custom) return custom;
+      const preset = db[type];
+      return preset ? preset : { weight: 0, thrust: 0, tsfc: 0 };
+    }
+
+    function parseCSV(text) {
+      return text.trim().split('\n').map(line => line.split(',').map(cell => cell.trim()));
+    }
+
+    function parseEngineCSV(text) {
+      const rows = parseCSV(text);
+      const newDB = {};
+      for (let i = 1; i < rows.length; i++) {
+        const [name, weight, thrust, tsfc] = rows[i];
+        if (name && weight && thrust && tsfc) {
+          newDB[name] = {
+            weight: parseFloat(weight),
+            thrust: parseFloat(thrust),
+            tsfc: parseFloat(tsfc)
+          };
+        }
+      }
+      return newDB;
+    }
+
+    function parseAirframeCSV(text) {
+      const rows = parseCSV(text);
+      const newDB = {};
+      // Expect header: Name, WingArea, AspectRatio, WetWingRatio, OswaldFactor, StructureMassFraction, ThrustToWeightRatio, NumEngines
+      for (let i = 1; i < rows.length; i++) {
+        const [name, wingArea, aspectRatio, wetWingRatio, oswaldFactor, structureMassFraction, thrustToWeightRatio, numEngines] = rows[i];
+        if (name) {
+          newDB[name] = {
+            wingArea: parseFloat(wingArea),
+            aspectRatio: parseFloat(aspectRatio),
+            wetWingRatio: parseFloat(wetWingRatio),
+            oswaldFactor: parseFloat(oswaldFactor),
+            structureMassFraction: parseFloat(structureMassFraction),
+            thrustToWeightRatio: parseFloat(thrustToWeightRatio),
+            numEngines: parseFloat(numEngines) || 1
+          };
+        }
+      }
+      return newDB;
+    }
+
+    function exportToCSV(filename, headers, rows) {
+      const csvContent = "data:text/csv;charset=utf-8," 
+        + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function calculateEngineTotals(params, count) {
+      return {
+        totalWeight: params.weight * count,
+        totalThrust: params.thrust * count,
+      };
+    }
+
+    function calculateMTOW(totalThrust, ratio) {
+      if (totalThrust > 0 && ratio > 0) return totalThrust / ratio;
+      return null;
+    }
+
+    function calculateMAC(S, AR) {
+      if (S > 0 && AR > 0) return Math.sqrt(S / AR);
+      return null;
+    }
+
+    function calculateStructureDiff(currentFraction) {
+      return (currentFraction - B2_STRUCTURE_FRACTION) / B2_STRUCTURE_FRACTION;
+    }
+
+    function calculateWeights(mtow, payload, structFraction, totalEngineWeight) {
+      if (mtow === null) return { structure: null, fuel: null };
+      const structure = structFraction * mtow;
+      const fuel = mtow - payload - structure - totalEngineWeight;
+      return { structure, fuel };
+    }
+
+    function convertSpeeds(knots, mach, speedOfSound) {
+      const takeoff = knots * 0.514444; 
+      const cruise = mach * speedOfSound;
+      return { takeoff, cruise };
+    }
+
+    function calculateCL(mtow, cruiseWeightTons, vTakeoff, vCruise, S, rhoTakeoff, rhoCruise) {
+      let clTakeoff = null;
+      if (mtow !== null && vTakeoff > 0 && S > 0) {
+        clTakeoff = (2 * mtow * 9800) / (rhoTakeoff * Math.pow(vTakeoff, 2) * S);
+      }
+      let clCruise = null;
+      if (cruiseWeightTons !== null && vCruise > 0 && S > 0 && rhoCruise > 0) {
+        clCruise = (2 * cruiseWeightTons * 9800) / (rhoCruise * Math.pow(vCruise, 2) * S);
+      }
+      return { clTakeoff, clCruise };
+    }
+
+    function calculateCDi(cl, AR, e) {
+      if (cl !== null && AR > 0 && e > 0) {
+        return Math.pow(cl, 2) / (Math.PI * AR * e);
+      }
+      return null;
+    }
+
+    function calculateCf(rho, velocity, mac, viscosity, fNLF) {
+      if (mac === null || velocity <= 0 || rho <= 0 || viscosity <= 0) return null;
+      const Re = (rho * velocity * mac) / viscosity;
+      if (Re <= 0) return null;
+      const cfLaminar = 1.328 / Math.sqrt(Re);
+      const cfTurbulent = 0.455 / Math.pow(Math.log10(Re), 2.58);
+      return fNLF * cfLaminar + (1 - fNLF) * cfTurbulent;
+    }
+
+    function normalizeCf(cf, wetWingRatio) {
+      if (cf === null || wetWingRatio <= 0) return null;
+      return cf * wetWingRatio;
+    }
+
+    function calculateAeroPerformance(cdi, cfNorm, cl) {
+      if (cdi === null || cfNorm === null || cl === null) return { cd: null, ld: null };
+      const cd = (cdi + cfNorm) / 0.85;
+      const ld = cd > 0 ? cl / cd : null;
+      return { cd, ld };
+    }
+
+    function calculateThrustReq(totalThrustSeaLevel, currentDensity, seaLevelDensity, weightTons, ldRatio) {
+      const thrustAvailable = totalThrustSeaLevel * (currentDensity / seaLevelDensity);
+      let dragForceTons = null;
+      if (weightTons !== null && ldRatio !== null && ldRatio > 0) {
+        dragForceTons = weightTons / ldRatio;
+      }
+      return { thrustAvailable, dragForceTons };
+    }
+
+    function calculateRangeFuels(payload, mtow, totalFuel) {
+      if (mtow === null || totalFuel === null) return { inbound: null, outbound: null };
+      const disc = Math.pow(payload - 2 * mtow, 2) - 4 * mtow * totalFuel;
+      if (disc < 0) return { inbound: null, outbound: null };
+      const inbound = 0.5 * (-Math.sqrt(disc) + 2 * mtow - payload);
+      const outbound = totalFuel - inbound;
+      return { inbound, outbound };
+    }
+
+    function calculateRanges(mtow, inboundFuel, outboundFuel, payload, tsfc, ldCruise) {
+      if (mtow === null || inboundFuel === null || outboundFuel === null || ldCruise === null || tsfc <= 0) {
+        return { inboundRange: null, outboundRange: null, realRange: null };
+      }
+      let inboundRange = null;
+      if (mtow > (mtow - inboundFuel) && (mtow - inboundFuel) > 0) {
+         inboundRange = (Math.log(mtow / (mtow - inboundFuel)) / tsfc) * ldCruise;
+      }
+      let outboundRange = null;
+      const wStartOut = mtow - inboundFuel - payload;
+      const wEndOut = wStartOut - outboundFuel;
+      if (wStartOut > wEndOut && wEndOut > 0) {
+        outboundRange = (Math.log(wStartOut / wEndOut) / tsfc) * ldCruise;
+      }
+      const realRange = inboundRange !== null ? inboundRange * B2_CONVERSION_FACTOR : null;
+      return { inboundRange, outboundRange, realRange };
+    }
+
+    function calculateSimulation(sim, wingArea, aspectRatio, oswald, cfCruiseNorm, totalThrustSL) {
+      const atm = ATMOSPHERE_LOOKUP[sim.altitude];
+      const velocity = sim.mach * atm.speedOfSound;
+      
+      let cl = null;
+      if (atm.density > 0 && velocity > 0 && wingArea > 0) {
+        cl = (2 * sim.weight * 9800 * sim.gLoad) / (atm.density * Math.pow(velocity, 2) * wingArea);
+      }
+
+      let cdi = null;
+      if (cl !== null && aspectRatio > 0 && oswald > 0) {
+        cdi = Math.pow(cl, 2) / (Math.PI * aspectRatio * oswald);
+      }
+
+      let cd = null;
+      if (cdi !== null && cfCruiseNorm !== null) {
+        cd = (cdi + cfCruiseNorm) / 0.85;
+      }
+
+      let ld = null;
+      if (cl !== null && cd !== null && cd > 0) {
+        ld = cl / cd;
+      }
+
+      const rho0 = ATMOSPHERE_LOOKUP["0 m"].density;
+      const thrustAvailable = totalThrustSL * (atm.density / rho0);
+
+      let dragForce = null;
+      if (ld !== null && ld > 0) {
+        dragForce = (sim.weight * sim.gLoad) / ld;
+      }
+
+      return { cl, cd, ld, thrustAvailable, dragForce };
+    }
+
+    // --- UI COMPONENTS ---
+
+    const Section = ({ title, iconPath, children, className = "" }) => {
+      return (
+        <div className={`bg-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-lg ${className}`}>
+          <div className="bg-slate-800 px-4 py-3 border-b border-slate-700 flex items-center gap-2">
+            {iconPath && <span className="text-blue-400"><Icon path={iconPath} size={18} /></span>}
+            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-200">{title}</h2>
+          </div>
+          <div className="p-4 space-y-4">
+            {children}
+          </div>
+        </div>
+      );
+    };
+
+    const SliderControl = ({ 
+      label, value, min, max, step, unit = "", onChange, disabled = false 
+    }) => {
+      const val = typeof value === 'number' && !isNaN(value) ? value : min;
+      return (
+        <div className={`space-y-1 ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
+          <div className="flex justify-between text-xs text-slate-400">
+            <label>{label}</label>
+            <span className="font-mono text-blue-300">{val.toFixed(step < 0.1 ? 2 : 1)} {unit}</span>
+          </div>
+          <input
+            type="range"
+            min={min}
+            max={max}
+            step={step}
+            value={val}
+            onChange={(e) => onChange(parseFloat(e.target.value))}
+            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 hover:accent-blue-400"
+          />
+        </div>
+      );
+    };
+
+    const SelectControl = ({ label, value, options, onChange }) => {
+      return (
+        <div className="space-y-1">
+          <label className="text-xs text-slate-400">{label}</label>
+          <select
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-full bg-slate-800 border border-slate-600 text-slate-200 text-sm rounded-md p-2 focus:ring-1 focus:ring-blue-500 outline-none"
+          >
+            {options.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        </div>
+      );
+    };
+
+    const ResultRow = ({ label, value, unit = "", highlight = false, status = "neutral" }) => {
+      let valueColor = "text-slate-200";
+      if (status === "success") valueColor = "text-emerald-400";
+      if (status === "error") valueColor = "text-red-400";
+      if (highlight && status === "neutral") valueColor = "text-blue-300";
+
+      const displayValue = value === null || (typeof value === 'number' && isNaN(value)) 
+        ? "Invalid" 
+        : typeof value === 'number' 
+          ? Number.isInteger(value) ? value : value.toFixed(3)
+          : value;
+
+      return (
+        <div className="flex justify-between items-center text-sm border-b border-slate-800 pb-1 last:border-0">
+          <span className="text-slate-400">{label}</span>
+          <span className={`font-mono font-medium ${valueColor}`}>
+            {displayValue} <span className="text-slate-500 text-xs">{unit}</span>
+          </span>
+        </div>
+      );
+    };
+
+    const SimpleBarChart = ({ data }) => {
+      // Data: [{ name: 'Takeoff', Available: val, Required: val }, ...]
+      // Handle cases where values might be null/NaN for safety
+      const safeData = data.map(d => ({
+        name: d.name,
+        Available: d.Available || 0,
+        Required: d.Required || 0
+      }));
+
+      const maxVal = Math.max(
+        ...safeData.map(d => Math.max(d.Available, d.Required))
+      ) * 1.1 || 100; // Default to 100 if all 0
+
+      return (
+        <div className="w-full h-48 flex items-end justify-around space-x-4 pt-6 select-none relative">
+          {safeData.map((item, i) => {
+            const hAvail = (item.Available / maxVal) * 100;
+            const hReq = (item.Required / maxVal) * 100;
+            
+            return (
+              <div key={i} className="flex-1 flex flex-col items-center h-full justify-end group">
+                <div className="w-full max-w-[120px] flex items-end justify-center space-x-2 h-full border-b border-slate-700 pb-2 relative">
+                  
+                  {/* Tooltip */}
+                  <div className="absolute bottom-full mb-2 bg-slate-800 border border-slate-600 p-2 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 w-48 shadow-xl">
+                    <div className="font-bold text-slate-300 mb-1">{item.name}</div>
+                    <div className="flex justify-between text-blue-400"><span>Avail:</span> <span>{item.Available.toFixed(1)} t</span></div>
+                    <div className="flex justify-between text-red-400"><span>Req:</span> <span>{item.Required.toFixed(1)} t</span></div>
+                  </div>
+
+                  {/* Available Bar */}
+                  <div 
+                    className="w-8 bg-blue-500 rounded-t hover:bg-blue-400 transition-all relative"
+                    style={{ height: `${Math.max(hAvail, 2)}%` }} // Min 2% height for visibility
+                  ></div>
+
+                  {/* Required Bar */}
+                  <div 
+                    className="w-8 bg-red-500 rounded-t hover:bg-red-400 transition-all relative"
+                    style={{ height: `${Math.max(hReq, 2)}%` }}
+                  ></div>
+                </div>
+                <div className="text-xs text-slate-400 mt-2 font-medium uppercase">{item.name}</div>
+              </div>
+            );
+          })}
+        </div>
+      );
+    };
+
+    // --- MAIN APP ---
+
+    function App() {
+      // --- DATABASE STATE ---
+      const [engineDB, setEngineDB] = useState(ENGINE_PRESETS);
+      const [airframeDB, setAirframeDB] = useState(INITIAL_AIRFRAMES);
+
+      // --- STATE ---
+      const [engineType, setEngineType] = useState(EngineType.Custom);
+      const [customEngine, setCustomEngine] = useState({ weight: 1.5, thrust: 12, tsfc: 0.8 });
+      const [numEngines, setNumEngines] = useState(1);
+
+      const [weightPreset, setWeightPreset] = useState(WeightPreset.Custom);
+      const [thrustToWeightRatio, setThrustToWeightRatio] = useState(0.3);
+
+      const [aeroPreset, setAeroPreset] = useState(AeroPreset.Custom);
+      const [customAero, setCustomAero] = useState({ 
+        wingArea: 50, aspectRatio: 7, wetWingRatio: 6, oswaldFactor: 0.8 
+      });
+
+      const [payloadWeight, setPayloadWeight] = useState(8);
+      const [structurePreset, setStructurePreset] = useState(StructurePreset.Custom);
+      const [structureMassFraction, setStructureMassFraction] = useState(0.4);
+
+      const [altitudeMode, setAltitudeMode] = useState('preset');
+      const [altitude, setAltitude] = useState("0 m");
+      const [customAltitude, setCustomAltitude] = useState(10000);
+      const [takeoffSpeedKnots, setTakeoffSpeedKnots] = useState(150);
+      const [cruiseMach, setCruiseMach] = useState(0.8);
+      const [fNLF, setFNLF] = useState(0);
+
+      const [simParams, setSimParams] = useState({
+        altitude: "0 m",
+        mach: 0.8,
+        weight: 50,
+        gLoad: 1
+      });
+
+      // --- DEFERRED STATE FOR CALCULATIONS ---
+      // This prevents the UI from locking up while dragging sliders
+      const defEngineType = useDeferredValue(engineType);
+      const defCustomEngine = useDeferredValue(customEngine);
+      const defNumEngines = useDeferredValue(numEngines);
+      
+      const defWeightPreset = useDeferredValue(weightPreset);
+      const defThrustToWeightRatio = useDeferredValue(thrustToWeightRatio);
+
+      const defAeroPreset = useDeferredValue(aeroPreset);
+      const defCustomAero = useDeferredValue(customAero);
+
+      const defPayloadWeight = useDeferredValue(payloadWeight);
+      const defStructurePreset = useDeferredValue(structurePreset);
+      const defStructureMassFraction = useDeferredValue(structureMassFraction);
+
+      const defAltitudeMode = useDeferredValue(altitudeMode);
+      const defAltitude = useDeferredValue(altitude);
+      const defCustomAltitude = useDeferredValue(customAltitude);
+      const defTakeoffSpeedKnots = useDeferredValue(takeoffSpeedKnots);
+      const defCruiseMach = useDeferredValue(cruiseMach);
+      const defFNLF = useDeferredValue(fNLF);
+
+      const defSimParams = useDeferredValue(simParams);
+
+
+      // --- HANDLERS ---
+      const handleEngineExport = () => {
+        const headers = ["Name", "Weight (ton)", "Thrust (ton)", "TSFC (kg*s/ton)"];
+        const rows = Object.entries(engineDB).map(([name, params]) => [
+          name, params.weight, params.thrust, params.tsfc
+        ]);
+        exportToCSV("engine_db.csv", headers, rows);
+      };
+
+      const handleAirframeExport = () => {
+        const headers = ["Name", "Wing Area (m2)", "Aspect Ratio", "Wet/Wing Ratio", "Oswald Factor", "Structure Mass Fraction", "Thrust/Weight Ratio", "Num Engines"];
+        const rows = Object.entries(airframeDB).map(([name, params]) => [
+          name, params.wingArea, params.aspectRatio, params.wetWingRatio, params.oswaldFactor, params.structureMassFraction, params.thrustToWeightRatio, params.numEngines
+        ]);
+        exportToCSV("airframe_db.csv", headers, rows);
+      };
+
+      const handleEngineImport = (e) => {
+        const file = e.target.files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            try {
+              const newEngines = parseEngineCSV(evt.target.result);
+              setEngineDB(prev => ({ ...prev, ...newEngines }));
+              alert(`Successfully imported ${Object.keys(newEngines).length} engines.`);
+            } catch (err) {
+              alert("Error parsing CSV. Check format.");
+            }
+          };
+          reader.readAsText(file);
+        }
+      };
+
+      const handleAirframeImport = (e) => {
+        const file = e.target.files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            try {
+              const newAirframes = parseAirframeCSV(evt.target.result);
+              setAirframeDB(prev => ({ ...prev, ...newAirframes }));
+              alert(`Successfully imported ${Object.keys(newAirframes).length} airframes.`);
+            } catch (err) {
+              alert("Error parsing CSV. Check format.");
+            }
+          };
+          reader.readAsText(file);
+        }
+      };
+
+      const loadAirframe = (name) => {
+        const frame = airframeDB[name];
+        if (frame) {
+          setCustomAero({
+            wingArea: frame.wingArea,
+            aspectRatio: frame.aspectRatio,
+            wetWingRatio: frame.wetWingRatio,
+            oswaldFactor: frame.oswaldFactor
+          });
+          setStructureMassFraction(frame.structureMassFraction);
+          setThrustToWeightRatio(frame.thrustToWeightRatio);
+          setNumEngines(frame.numEngines);
+          
+          setAeroPreset(AeroPreset.Custom);
+          setStructurePreset(StructurePreset.Custom);
+          setWeightPreset(WeightPreset.Custom);
+        }
+      };
+
+      // --- CALCULATIONS (Using Deferred Values) ---
+      const engineParams = useMemo(() => getEngineParams(defEngineType, defCustomEngine, engineDB), [defEngineType, defCustomEngine, engineDB]);
+      const engineTotals = useMemo(() => calculateEngineTotals(engineParams, defNumEngines), [engineParams, defNumEngines]);
+
+      const activeThrustToWeight = defWeightPreset === WeightPreset.B2 ? 0.206 : defThrustToWeightRatio;
+      const mtow = useMemo(() => calculateMTOW(engineTotals.totalThrust, activeThrustToWeight), [engineTotals.totalThrust, activeThrustToWeight]);
+
+      const activeAero = useMemo(() => {
+        if (defAeroPreset === AeroPreset.Custom) return defCustomAero;
+        return AERO_PRESETS[defAeroPreset];
+      }, [defAeroPreset, defCustomAero]);
+      const mac = useMemo(() => calculateMAC(activeAero.wingArea, activeAero.aspectRatio), [activeAero]);
+
+      const activeStructFraction = defStructurePreset === StructurePreset.B2 ? 0.406 : defStructureMassFraction;
+      const structDiff = calculateStructureDiff(activeStructFraction);
+      const weights = useMemo(() => calculateWeights(mtow, defPayloadWeight, activeStructFraction, engineTotals.totalWeight), [mtow, defPayloadWeight, activeStructFraction, engineTotals.totalWeight]);
+      
+      const atm = useMemo(() => {
+        if (defAltitudeMode === 'preset') {
+          return ATMOSPHERE_LOOKUP[defAltitude];
+        } else {
+          return interpolateAtmosphere(defCustomAltitude);
+        }
+      }, [defAltitudeMode, defAltitude, defCustomAltitude]);
+
+      const speeds = useMemo(() => convertSpeeds(defTakeoffSpeedKnots, defCruiseMach, atm.speedOfSound), [defTakeoffSpeedKnots, defCruiseMach, atm]);
+
+      const rhoTakeoff = ATMOSPHERE_LOOKUP["0 m"].density;
+      
+      const cruiseWeightTons = (weights.structure !== null && weights.fuel !== null) 
+        ? weights.structure + 0.5 * defPayloadWeight + 0.5 * weights.fuel 
+        : null;
+
+      const cl = useMemo(() => calculateCL(
+        mtow, cruiseWeightTons, speeds.takeoff, speeds.cruise, activeAero.wingArea, rhoTakeoff, atm.density
+      ), [mtow, cruiseWeightTons, speeds, activeAero, rhoTakeoff, atm]);
+
+      const cdiTakeoff = calculateCDi(cl.clTakeoff, activeAero.aspectRatio, activeAero.oswaldFactor);
+      const cdiCruise = calculateCDi(cl.clCruise, activeAero.aspectRatio, activeAero.oswaldFactor);
+
+      const cfTakeoff = useMemo(() => calculateCf(rhoTakeoff, speeds.takeoff, mac, 0.00001789, defFNLF), [rhoTakeoff, speeds.takeoff, mac, defFNLF]);
+      const cfCruise = useMemo(() => calculateCf(atm.density, speeds.cruise, mac, atm.viscosity, defFNLF), [atm, speeds.cruise, mac, defFNLF]);
+
+      const cfTakeoffNorm = normalizeCf(cfTakeoff, activeAero.wetWingRatio);
+      const cfCruiseNorm = normalizeCf(cfCruise, activeAero.wetWingRatio);
+
+      const perfTakeoff = calculateAeroPerformance(cdiTakeoff, cfTakeoffNorm, cl.clTakeoff);
+      const perfCruise = calculateAeroPerformance(cdiCruise, cfCruiseNorm, cl.clCruise);
+
+      const thrustReqTakeoff = calculateThrustReq(engineTotals.totalThrust, rhoTakeoff, rhoTakeoff, mtow, perfTakeoff.ld);
+      const thrustReqCruise = calculateThrustReq(engineTotals.totalThrust, atm.density, rhoTakeoff, cruiseWeightTons, perfCruise.ld);
+
+      const fuelSplits = calculateRangeFuels(defPayloadWeight, mtow, weights.fuel);
+      const ranges = calculateRanges(mtow, fuelSplits.inbound, fuelSplits.outbound, defPayloadWeight, engineParams.tsfc, perfCruise.ld);
+
+      const simResults = useMemo(() => calculateSimulation(
+        defSimParams, activeAero.wingArea, activeAero.aspectRatio, activeAero.oswaldFactor, cfCruiseNorm, engineTotals.totalThrust
+      ), [defSimParams, activeAero, cfCruiseNorm, engineTotals]);
+
+      const thrustData = [
+        { name: 'Takeoff', Available: thrustReqTakeoff.thrustAvailable, Required: thrustReqTakeoff.dragForceTons },
+        { name: 'Cruise', Available: thrustReqCruise.thrustAvailable, Required: thrustReqCruise.dragForceTons },
+      ];
+
+      return (
+        <div className="min-h-screen p-4 md:p-8">
+          <header className="max-w-7xl mx-auto mb-8 pb-4 border-b border-slate-800">
+            <div className="flex justify-between items-end">
+              <div>
+                <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+                  <span className="text-blue-500"><Icon path={ICON_PATHS.Plane} size={32} /></span> Stealth Aero Performance
+                </h1>
+                <p className="text-slate-500 mt-2 text-sm">
+                  Advanced aerodynamic analysis based on B-2/B-21 stealth bomber profiles.
+                  Calculates propulsion, drag polars, and mission range.
+                </p>
+              </div>
+            </div>
+          </header>
+
+          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            {/* LEFT COLUMN */}
+            <div className="lg:col-span-4 space-y-6">
+              
+              <Section title="Propulsion System" iconPath={ICON_PATHS.Settings}>
+                <SelectControl 
+                  label="Engine Type" 
+                  value={engineType} 
+                  options={[...Object.keys(engineDB), EngineType.Custom]} 
+                  onChange={setEngineType} 
+                />
+                
+                {engineType === EngineType.Custom && (
+                  <div className="pl-2 border-l-2 border-slate-700 space-y-3 pt-2">
+                    <SliderControl label="Weight (ton)" value={customEngine.weight} min={1} max={10} step={0.1} onChange={(v) => setCustomEngine({...customEngine, weight: v})} />
+                    <SliderControl label="Thrust (ton)" value={customEngine.thrust} min={3} max={50} step={0.1} onChange={(v) => setCustomEngine({...customEngine, thrust: v})} />
+                    <SliderControl label="TSFC (kg*s/ton)" value={customEngine.tsfc} min={0.3} max={1} step={0.01} onChange={(v) => setCustomEngine({...customEngine, tsfc: v})} />
+                  </div>
+                )}
+                
+                <ResultRow label="Total Thrust" value={engineTotals.totalThrust} unit="tons" />
+              </Section>
+
+              <Section title="Airframe Geometry" iconPath={ICON_PATHS.Scale}>
+                <div className="bg-blue-900/20 p-3 rounded border border-blue-900/50 mb-4">
+                   <div className="flex justify-between items-center mb-1">
+                     <label className="text-xs text-blue-300 font-bold uppercase">Load Airframe Template</label>
+                   </div>
+                   <select 
+                      className="w-full bg-slate-800 border border-slate-600 text-slate-200 text-sm rounded-md p-2 outline-none"
+                      onChange={(e) => loadAirframe(e.target.value)}
+                      defaultValue=""
+                   >
+                     <option value="" disabled>Select Airframe to Load...</option>
+                     {Object.keys(airframeDB).map(k => (
+                       <option key={k} value={k}>{k}</option>
+                     ))}
+                   </select>
+                   <p className="text-[10px] text-slate-500 mt-1">
+                     Loading a template will overwrite Custom values below and switch presets to 'Custom'.
+                   </p>
+                </div>
+                
+                <SliderControl label="Number of Engines" value={numEngines} min={1} max={10} step={1} onChange={setNumEngines} />
+                <div className="h-px bg-slate-800 my-4" />
+
+                <SelectControl 
+                  label="Weight Preset" 
+                  value={weightPreset} 
+                  options={Object.values(WeightPreset)} 
+                  onChange={(v) => setWeightPreset(v)} 
+                />
+                {weightPreset === WeightPreset.Custom && (
+                   <SliderControl label="Thrust/Weight Ratio" value={thrustToWeightRatio} min={0.1} max={1} step={0.01} onChange={setThrustToWeightRatio} />
+                )}
+                <ResultRow label="MTOW" value={mtow} unit="tons" highlight />
+
+                <div className="h-px bg-slate-800 my-2" />
+
+                <SelectControl 
+                  label="Aerodynamics Preset" 
+                  value={aeroPreset} 
+                  options={Object.values(AeroPreset)} 
+                  onChange={(v) => setAeroPreset(v)} 
+                />
+                {aeroPreset === AeroPreset.Custom && (
+                  <div className="pl-2 border-l-2 border-slate-700 space-y-3 pt-2">
+                     <SliderControl label="Wing Area" value={customAero.wingArea} min={10} max={500} step={1} unit="m²" onChange={(v) => setCustomAero({...customAero, wingArea: v})} />
+                     <SliderControl label="Aspect Ratio" value={customAero.aspectRatio} min={1} max={15} step={0.1} onChange={(v) => setCustomAero({...customAero, aspectRatio: v})} />
+                     <SliderControl label="Wet/Wing Ratio" value={customAero.wetWingRatio} min={1} max={10} step={0.1} onChange={(v) => setCustomAero({...customAero, wetWingRatio: v})} />
+                     <SliderControl label="Oswald Factor" value={customAero.oswaldFactor} min={0.5} max={1} step={0.01} onChange={(v) => setCustomAero({...customAero, oswaldFactor: v})} />
+                  </div>
+                )}
+                 <ResultRow label="MAC" value={mac} unit="m" />
+              </Section>
+
+              <Section title="Structure & Payload" iconPath={ICON_PATHS.Gauge}>
+                <SliderControl label="Payload Weight" value={payloadWeight} min={0.1} max={50} step={0.1} unit="tons" onChange={setPayloadWeight} />
+                
+                <SelectControl 
+                  label="Structure Material Preset" 
+                  value={structurePreset} 
+                  options={Object.values(StructurePreset)} 
+                  onChange={(v) => setStructurePreset(v)} 
+                />
+                {structurePreset === StructurePreset.Custom && (
+                  <SliderControl label="Structure Mass Fraction" value={structureMassFraction} min={0.2} max={0.6} step={0.001} onChange={setStructureMassFraction} />
+                )}
+                <ResultRow 
+                  label="Diff from B-2" 
+                  value={structDiff > 0 ? `+${structDiff.toFixed(3)}` : structDiff.toFixed(3)} 
+                  unit="frac" 
+                />
+              </Section>
+
+              <Section title="Flight Profile" iconPath={ICON_PATHS.Wind}>
+                  <div className="mb-4">
+                    <label className="text-xs text-slate-400 block mb-1">Altitude Mode</label>
+                    <div className="flex bg-slate-800 rounded p-1 border border-slate-700">
+                      <button
+                        className={`flex-1 text-xs py-1 rounded transition-colors ${altitudeMode === 'preset' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
+                        onClick={() => setAltitudeMode('preset')}
+                      >
+                        Preset
+                      </button>
+                      <button
+                        className={`flex-1 text-xs py-1 rounded transition-colors ${altitudeMode === 'custom' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
+                        onClick={() => setAltitudeMode('custom')}
+                      >
+                        Custom
+                      </button>
+                    </div>
+                  </div>
+
+                  {altitudeMode === 'preset' ? (
+                    <SelectControl 
+                      label="Cruising Altitude" 
+                      value={altitude} 
+                      options={ALTITUDE_OPTIONS} 
+                      onChange={setAltitude} 
+                    />
+                  ) : (
+                    <SliderControl 
+                      label="Custom Altitude" 
+                      value={customAltitude} 
+                      min={0} 
+                      max={20000} 
+                      step={100} 
+                      unit="m" 
+                      onChange={setCustomAltitude} 
+                    />
+                  )}
+
+                  <div className="grid grid-cols-2 gap-2 text-xs text-slate-500 mb-2 mt-2 bg-slate-900/50 p-2 rounded border border-slate-800/50">
+                    <div>ρ: {atm.density.toFixed(4)}</div>
+                    <div>Vs: {atm.speedOfSound.toFixed(1)} m/s</div>
+                    <div className="col-span-2 text-[10px] text-slate-600">μ: {atm.viscosity.toExponential(3)}</div>
+                  </div>
+
+                  <SliderControl label="Takeoff Speed (knots)" value={takeoffSpeedKnots} min={50} max={300} step={1} onChange={setTakeoffSpeedKnots} />
+                  <SliderControl label="Cruise Mach" value={cruiseMach} min={0.3} max={3} step={0.01} onChange={setCruiseMach} />
+                  <SliderControl label="Laminar Flow (fNLF)" value={fNLF} min={0} max={1} step={0.01} onChange={setFNLF} />
+              </Section>
+            </div>
+
+            {/* CENTER COLUMN */}
+            <div className="lg:col-span-4 space-y-6">
+              <Section title="Drag Analysis" iconPath={ICON_PATHS.Activity}>
+                 <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <h3 className="text-xs text-blue-400 uppercase font-bold">Takeoff</h3>
+                      <ResultRow label="CL" value={cl.clTakeoff} />
+                      <ResultRow label="CDi" value={cdiTakeoff} />
+                      <ResultRow label="Cf (norm)" value={cfTakeoffNorm} />
+                      <ResultRow label="Total CD" value={perfTakeoff.cd} />
+                      <ResultRow label="L/D" value={perfTakeoff.ld} highlight />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-xs text-emerald-400 uppercase font-bold">Cruise</h3>
+                      <ResultRow label="CL" value={cl.clCruise} />
+                      <ResultRow label="CDi" value={cdiCruise} />
+                      <ResultRow label="Cf (norm)" value={cfCruiseNorm} />
+                      <ResultRow label="Total CD" value={perfCruise.cd} />
+                      <ResultRow label="L/D" value={perfCruise.ld} highlight />
+                    </div>
+                 </div>
+              </Section>
+
+              <Section title="Thrust vs Drag" iconPath={ICON_PATHS.TrendingUp}>
+                  <SimpleBarChart data={thrustData} />
+                  <div className="space-y-2 mt-2 pt-2 border-t border-slate-800">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-400">Takeoff Status:</span>
+                      {(thrustReqTakeoff.thrustAvailable && thrustReqTakeoff.dragForceTons) ? (
+                        thrustReqTakeoff.thrustAvailable >= thrustReqTakeoff.dragForceTons 
+                        ? <span className="text-emerald-400 font-bold">Sufficient</span>
+                        : <span className="text-red-400 font-bold">Insufficient</span>
+                      ) : <span className="text-slate-600">Invalid</span>}
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-400">Cruise Status:</span>
+                       {(thrustReqCruise.thrustAvailable && thrustReqCruise.dragForceTons) ? (
+                        thrustReqCruise.thrustAvailable >= thrustReqCruise.dragForceTons 
+                        ? <span className="text-emerald-400 font-bold">Sufficient</span>
+                        : <span className="text-red-400 font-bold">Insufficient</span>
+                      ) : <span className="text-slate-600">Invalid</span>}
+                    </div>
+                  </div>
+              </Section>
+
+              <Section title="Mission Range" iconPath={ICON_PATHS.Plane}>
+                  <ResultRow label="Structure Weight" value={weights.structure} unit="tons" />
+                  <ResultRow label="Fuel Weight" value={weights.fuel} unit="tons" />
+                  <div className="h-px bg-slate-800 my-2" />
+                  <ResultRow label="Inbound Fuel" value={fuelSplits.inbound} unit="tons" />
+                  <ResultRow label="Outbound Fuel" value={fuelSplits.outbound} unit="tons" />
+                  <div className="h-px bg-slate-800 my-2" />
+                  <ResultRow label="Calculated Range" value={ranges.realRange} unit="km" highlight status="success" />
+                  <p className="text-xs text-slate-500 mt-2 italic">
+                    *Based on Breguet range eq. with B-2 conversion factor.
+                  </p>
+              </Section>
+            </div>
+
+            {/* RIGHT COLUMN */}
+            <div className="lg:col-span-4 space-y-6">
+              <Section title="Flight Condition Sim" iconPath={ICON_PATHS.Activity}>
+                 <p className="text-xs text-slate-400 mb-4">
+                   Simulate instantaneous performance at specific flight conditions (assuming cruise aero configuration).
+                 </p>
+                 <SelectControl 
+                    label="Sim Altitude" 
+                    value={simParams.altitude} 
+                    options={ALTITUDE_OPTIONS} 
+                    onChange={(v) => setSimParams({...simParams, altitude: v})} 
+                  />
+                  <SliderControl label="Sim Speed (Mach)" value={simParams.mach} min={0.3} max={0.99} step={0.01} onChange={(v) => setSimParams({...simParams, mach: v})} />
+                  <SliderControl 
+                    label="Instant Weight" 
+                    value={simParams.weight} 
+                    min={weights.structure ?? 20} 
+                    max={mtow ?? 100} 
+                    step={0.1} 
+                    unit="tons"
+                    onChange={(v) => setSimParams({...simParams, weight: v})} 
+                  />
+                  <SliderControl label="G-Load" value={simParams.gLoad} min={1} max={5} step={0.1} onChange={(v) => setSimParams({...simParams, gLoad: v})} />
+                  
+                  <div className="mt-6 space-y-2 bg-slate-950 p-4 rounded border border-slate-800">
+                    <ResultRow label="Local CL" value={simResults.cl} />
+                    <ResultRow label="Local CD" value={simResults.cd} />
+                    <ResultRow label="Local L/D" value={simResults.ld} highlight />
+                    <div className="h-px bg-slate-800 my-2" />
+                    <ResultRow label="Thrust Avail" value={simResults.thrustAvailable} unit="tons" />
+                    <ResultRow label="Drag Force" value={simResults.dragForce} unit="tons" />
+                    <div className="mt-2 text-center">
+                      {(simResults.thrustAvailable !== null && simResults.dragForce !== null) ? (
+                          simResults.thrustAvailable >= simResults.dragForce 
+                          ? <span className="text-xs bg-emerald-900 text-emerald-300 px-2 py-1 rounded">Stable Flight Possible</span>
+                          : <span className="text-xs bg-red-900 text-red-300 px-2 py-1 rounded">Thrust Insufficient</span>
+                        ) : null}
+                    </div>
+                  </div>
+              </Section>
+
+              <Section title="Database Management" iconPath={ICON_PATHS.Database}>
+                <div className="space-y-4">
+                  <div className="p-3 bg-slate-800 rounded-lg border border-slate-700">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase mb-2">Engine Database</h3>
+                    <div className="flex gap-2">
+                      <label className="flex-1 cursor-pointer bg-slate-700 hover:bg-slate-600 text-white text-xs py-2 px-3 rounded flex items-center justify-center gap-2 transition-colors">
+                        <span className="flex items-center gap-2"><Icon path={ICON_PATHS.Upload} size={14} /> Import CSV</span>
+                        <input type="file" accept=".csv" className="hidden" onChange={handleEngineImport} />
+                      </label>
+                      <button 
+                        onClick={handleEngineExport}
+                        className="flex-1 bg-blue-700 hover:bg-blue-600 text-white text-xs py-2 px-3 rounded flex items-center justify-center gap-2 transition-colors"
+                      >
+                        <span className="flex items-center gap-2"><Icon path={ICON_PATHS.Download} size={14} /> Export CSV</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-slate-800 rounded-lg border border-slate-700">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase mb-2">Airframe Database</h3>
+                    <div className="flex gap-2">
+                      <label className="flex-1 cursor-pointer bg-slate-700 hover:bg-slate-600 text-white text-xs py-2 px-3 rounded flex items-center justify-center gap-2 transition-colors">
+                        <span className="flex items-center gap-2"><Icon path={ICON_PATHS.Upload} size={14} /> Import CSV</span>
+                        <input type="file" accept=".csv" className="hidden" onChange={handleAirframeImport} />
+                      </label>
+                      <button 
+                        onClick={handleAirframeExport}
+                        className="flex-1 bg-blue-700 hover:bg-blue-600 text-white text-xs py-2 px-3 rounded flex items-center justify-center gap-2 transition-colors"
+                      >
+                         <span className="flex items-center gap-2"><Icon path={ICON_PATHS.Download} size={14} /> Export CSV</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </Section>
+              
+              <div className="bg-slate-900 p-4 rounded-lg border border-slate-800 text-xs text-slate-500">
+                <div className="flex items-start gap-2">
+                  <span className="shrink-0 mt-0.5"><Icon path={ICON_PATHS.Info} size={16} /></span>
+                  <p>
+                    Calculations assume subsonic flight regimes. Normalized skin friction (Cf) depends on wetted area ratio derived from wing reference area. 
+                    Inbound/Outbound fuel split is calculated using quadratic discriminant analysis for aerodynamic center management similar to flying wing flying qualities.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      );
+    }
+
+    const rootElement = document.getElementById('root');
+    const root = createRoot(rootElement);
+    root.render(<App />);
+  </script>
+</body>
+</html>
