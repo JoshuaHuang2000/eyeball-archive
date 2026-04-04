@@ -144,11 +144,11 @@
         structureMassFraction: 0.39, thrustToWeightRatio: 0.22, numEngines: 2
       },
       "B-52": {
-        wingArea: 370, aspectRatio: 8.56, wetWingRatio: 3.9, oswaldFactor: 0.95,
+        wingArea: 370, aspectRatio: 8.56, wetWingRatio: 3.9, oswaldFactor: 0.85,
         structureMassFraction: 0.30, thrustToWeightRatio: 0.31, numEngines: 8
       },
       "H-6K": {
-        wingArea: 165, aspectRatio: 6.6, wetWingRatio: 4.4, oswaldFactor: 0.95,
+        wingArea: 165, aspectRatio: 6.6, wetWingRatio: 4.4, oswaldFactor: 0.85,
         structureMassFraction: 0.34, thrustToWeightRatio: 0.25, numEngines: 2
       },
       "J-36": {
@@ -311,12 +311,13 @@
       return null;
     }
 
-    function calculateCf(rho, velocity, mac, viscosity, fNLF) {
+    function calculateCf(rho, velocity, mac, viscosity, fNLF, mach) {
       if (mac === null || velocity <= 0 || rho <= 0 || viscosity <= 0) return null;
       const Re = (rho * velocity * mac) / viscosity;
       if (Re <= 0) return null;
+      const compressibility = Math.pow(1 + 0.144 * mach * mach, 0.65);
       const cfLaminar = 1.328 / Math.sqrt(Re);
-      const cfTurbulent = 0.455 / Math.pow(Math.log10(Re), 2.58);
+      const cfTurbulent = 0.455 / (Math.pow(Math.log10(Re), 2.58) * compressibility);
       return fNLF * cfLaminar + (1 - fNLF) * cfTurbulent;
     }
 
@@ -715,8 +716,9 @@
       const cdiTakeoff = calculateCDi(cl.clTakeoff, activeAero.aspectRatio, activeAero.oswaldFactor);
       const cdiCruise = calculateCDi(cl.clCruise, activeAero.aspectRatio, activeAero.oswaldFactor);
 
-      const cfTakeoff = useMemo(() => calculateCf(rhoTakeoff, speeds.takeoff, mac, 0.00001789, defFNLF), [rhoTakeoff, speeds.takeoff, mac, defFNLF]);
-      const cfCruise = useMemo(() => calculateCf(atm.density, speeds.cruise, mac, atm.viscosity, defFNLF), [atm, speeds.cruise, mac, defFNLF]);
+      const takeoffMach = speeds.takeoff / ATMOSPHERE_LOOKUP["0 m"].speedOfSound;
+      const cfTakeoff = useMemo(() => calculateCf(rhoTakeoff, speeds.takeoff, mac, 0.00001789, defFNLF, takeoffMach), [rhoTakeoff, speeds.takeoff, mac, defFNLF, takeoffMach]);
+      const cfCruise = useMemo(() => calculateCf(atm.density, speeds.cruise, mac, atm.viscosity, defFNLF, defCruiseMach), [atm, speeds.cruise, mac, defFNLF, defCruiseMach]);
 
       const cfTakeoffNorm = normalizeCf(cfTakeoff, activeAero.wetWingRatio);
       const cfCruiseNorm = normalizeCf(cfCruise, activeAero.wetWingRatio);
