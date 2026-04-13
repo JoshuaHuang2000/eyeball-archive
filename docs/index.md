@@ -7,7 +7,7 @@ hero:
   tagline: "在宇宙的物理法则面前，人类唯一的武器是理性的妥协与工程的奇迹。"
   actions: 
    - theme: brand 
-     text: 普罗米修斯计划解密 
+     text: 科幻作品 
      link: /prometheus/lore/the-birth-of-suns 
    - theme: alt
      text: 航空与工程学笔记
@@ -23,8 +23,8 @@ hero:
      link: /tools/aero-performance-calculator
 
 features:
-  - title: 普罗米修斯-以太计划 
-    details: 记录人类向 I 型文明跨越的编年史。从初代“天照号”的艰难孕育，到月球工业革命的崛起。 
+  - title: 科幻作品
+    details: 硬科幻创作集。普罗米修斯-以太计划：人类向 I 型文明跨越的编年史；挽救计划替代宇宙：深空捕鲸工业与文明跃迁。
     link: /prometheus/lore/the-birth-of-suns
   - title: 航空与工程学笔记 (New)
     details: 抛开科幻的滤镜，回归真实的物理。隐身技术的几何骗局、气动设计的妥协与飞行原理的本质。
