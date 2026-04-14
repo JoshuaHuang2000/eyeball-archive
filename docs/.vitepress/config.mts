@@ -116,7 +116,7 @@ export default defineConfig({
     },
 
     footer: {
-      message: 'DATA STREAM ENCRYPTED // OBSERVER_PROTOCOL_ACTIVE',
+      message: 'DATA STREAM ENCRYPTED // OBSERVER_PROTOCOL_ACTIVE  ·  私信联系：<a href="mailto:eyeball@eyeball-archive.com">eyeball@eyeball-archive.com</a>',
       copyright: 'Copyright © 2026 EYEBALL-ARCHIVE. All Rights Reserved.'
     },
 
