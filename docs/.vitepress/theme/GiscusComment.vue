@@ -18,8 +18,8 @@ const REPO_ID = 'R_kgDORe-4Jw'
 // After enabling Discussions + installing Giscus app, replace these two values:
 // 1. Visit https://giscus.app and fill in your repo to get CATEGORY_ID
 // 2. Set CATEGORY to match the Discussion category name you chose (e.g. 'Comments')
-const CATEGORY = 'Comments'
-const CATEGORY_ID = 'DIC_PLACEHOLDER' // <-- replace after setup
+const CATEGORY = 'General'
+const CATEGORY_ID = 'DIC_kwDORe-4J84C6yTc'
 
 function loadGiscus() {
   if (!containerRef.value) return
@@ -40,7 +40,7 @@ function loadGiscus() {
   script.setAttribute('data-strict', '0')
   script.setAttribute('data-reactions-enabled', '1')
   script.setAttribute('data-emit-metadata', '0')
-  script.setAttribute('data-input-position', 'top')
+  script.setAttribute('data-input-position', 'bottom')
   script.setAttribute('data-theme', isDark.value ? 'dark_dimmed' : 'light')
   script.setAttribute('data-lang', 'zh-CN')
   script.setAttribute('data-loading', 'lazy')
