@@ -108,6 +108,7 @@ export default defineConfig({
           collapsed: false,
           items: [
             { text: '澄清对隐身技术的常见误解', link: '/aviation/stealth-misconceptions' },
+            { text: '进阶隐身物理：从"几何形状"到"相干场"的直觉重构', link: '/aviation/physics-of-stealth' },
             { text: '飞机为什么能飞？航空史与物理', link: '/aviation/how-planes-fly' },
             { text: '空速、表速与涡扇引擎的谬误', link: '/aviation/aero-concepts' }
           ]
