@@ -4,7 +4,7 @@ layout: home
 hero:
   name: "EYEBALL ARCHIVE"
   text: "观测者终端"
-  tagline: "在宇宙的物理法则面前，人类唯一的武器是理性的妥协与工程的奇迹。"
+  tagline: "在宇宙的物理法则面前，人类唯二的武器是理性的妥协与工程的奇迹。"
   actions: 
    - theme: brand 
      text: 科幻作品 
