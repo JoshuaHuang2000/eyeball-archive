@@ -1,5 +1,43 @@
 import { defineConfig } from 'vitepress'
 
+// 科幻作品：三条独立故事线共用同一份侧边栏，按路由前缀复用
+const sciFiSidebar = [
+  {
+    text: '🔥 普罗米修斯-以太计划',
+    collapsed: false,
+    items: [
+      { text: '第1阶段：前五座”人造太阳”的诞生', link: '/prometheus/lore/the-birth-of-suns' },
+      { text: '第2阶段：月球工业革命的崛起', link: '/prometheus/lore/lunar-industrial-revolution' },
+      { text: '时代专题：追逐太阳-一块光伏瓦的三万六千公里奥德赛', link: '/prometheus/lore/pv-odyssey'},
+      { text: '初代太空电站构想白皮书', link: '/prometheus/lore/gen-1-blueprint' },
+      { text: '三方战略评估：SBSP全球商业化路径与利益相关方管理', link: '/prometheus/lore/sbsp-global-strategy' },
+      { text: '九十天：京都谈判第十七个月，倒数四十八小时', link: '/prometheus/lore/ninety-days' },
+      { text: '京都备忘录：天基太阳能电站商业化部署多边框架', link: '/prometheus/lore/kyoto-memorandum' },
+      { text: '接口：第一阶段的巴别塔', link: '/prometheus/incidents/the-babel' },
+      { text: '切换点：毫秒边缘的绞肉机', link: '/prometheus/incidents/the-handoff' },
+      { text: '灯塔守望者：莫哈韦沙漠的绝对禁区', link: '/prometheus/incidents/lighthouse-keeper' },
+      { text: '星舰柔性辐射防热盾系统 (F-TPS)', link: '/prometheus/tech/starship-f-tps' }
+    ]
+  },
+  {
+    text: '🚀 挽救计划：替代宇宙',
+    collapsed: false,
+    items: [
+      { text: '深空纪元：世界观设定', link: '/hail_mary_alt/deep-space-era' },
+      { text: '分歧点：叙事正文', link: '/hail_mary_alt/point-of-divergence' }
+    ]
+  },
+  {
+    text: '⚔️ 无声的终局：现代空战故事',
+    collapsed: false,
+    items: [
+      { text: '第一幕：剧本详细设计与战术推演蓝皮书', link: '/silent-endgame/act-1-blueprint' },
+      { text: '第二幕：剧本详细设计与战术推演蓝皮书', link: '/silent-endgame/act-2-blueprint' },
+      { text: '第三幕：剧本详细设计与技术分镜蓝皮书', link: '/silent-endgame/act-3-blueprint' }
+    ]
+  }
+]
+
 export default defineConfig({
   title: "EYEBALL ARCHIVE",
   description: "观测者终端",
@@ -18,61 +56,10 @@ export default defineConfig({
 
     // 左侧目录树 (采用对象结构，实现双区隔离)
     sidebar: {
-      // 扇区 Alpha：科幻作品（普罗米修斯 + 挽救计划）
-      '/prometheus/': [
-        {
-          text: '🔥 普罗米修斯-以太计划',
-          collapsed: false,
-          items: [
-            { text: '第1阶段：前五座”人造太阳”的诞生', link: '/prometheus/lore/the-birth-of-suns' },
-            { text: '第2阶段：月球工业革命的崛起', link: '/prometheus/lore/lunar-industrial-revolution' },
-            { text: '时代专题：追逐太阳-一块光伏瓦的三万六千公里奥德赛', link: '/prometheus/lore/pv-odyssey'},
-            { text: '初代太空电站构想白皮书', link: '/prometheus/lore/gen-1-blueprint' },
-            { text: '三方战略评估：SBSP全球商业化路径与利益相关方管理', link: '/prometheus/lore/sbsp-global-strategy' },
-            { text: '九十天：京都谈判第十七个月，倒数四十八小时', link: '/prometheus/lore/ninety-days' },
-            { text: '京都备忘录：天基太阳能电站商业化部署多边框架', link: '/prometheus/lore/kyoto-memorandum' },
-            { text: '接口：第一阶段的巴别塔', link: '/prometheus/incidents/the-babel' },
-            { text: '切换点：毫秒边缘的绞肉机', link: '/prometheus/incidents/the-handoff' },
-            { text: '灯塔守望者：莫哈韦沙漠的绝对禁区', link: '/prometheus/incidents/lighthouse-keeper' },
-            { text: '星舰柔性辐射防热盾系统 (F-TPS)', link: '/prometheus/tech/starship-f-tps' }
-          ]
-        },
-        {
-          text: '🚀 挽救计划：替代宇宙',
-          collapsed: false,
-          items: [
-            { text: '深空纪元：世界观设定', link: '/hail_mary_alt/deep-space-era' },
-            { text: '分歧点：叙事正文', link: '/hail_mary_alt/point-of-divergence' }
-          ]
-        }
-      ],
-      '/hail_mary_alt/': [
-        {
-          text: '🔥 普罗米修斯-以太计划',
-          collapsed: false,
-          items: [
-            { text: '第1阶段：前五座”人造太阳”的诞生', link: '/prometheus/lore/the-birth-of-suns' },
-            { text: '第2阶段：月球工业革命的崛起', link: '/prometheus/lore/lunar-industrial-revolution' },
-            { text: '时代专题：追逐太阳-一块光伏瓦的三万六千公里奥德赛', link: '/prometheus/lore/pv-odyssey'},
-            { text: '初代太空电站构想白皮书', link: '/prometheus/lore/gen-1-blueprint' },
-            { text: '三方战略评估：SBSP全球商业化路径与利益相关方管理', link: '/prometheus/lore/sbsp-global-strategy' },
-            { text: '九十天：京都谈判第十七个月，倒数四十八小时', link: '/prometheus/lore/ninety-days' },
-            { text: '京都备忘录：天基太阳能电站商业化部署多边框架', link: '/prometheus/lore/kyoto-memorandum' },
-            { text: '接口：第一阶段的巴别塔', link: '/prometheus/incidents/the-babel' },
-            { text: '切换点：毫秒边缘的绞肉机', link: '/prometheus/incidents/the-handoff' },
-            { text: '灯塔守望者：莫哈韦沙漠的绝对禁区', link: '/prometheus/incidents/lighthouse-keeper' },
-            { text: '星舰柔性辐射防热盾系统 (F-TPS)', link: '/prometheus/tech/starship-f-tps' }
-          ]
-        },
-        {
-          text: '🚀 挽救计划：替代宇宙',
-          collapsed: false,
-          items: [
-            { text: '深空纪元：世界观设定', link: '/hail_mary_alt/deep-space-era' },
-            { text: '分歧点：叙事正文', link: '/hail_mary_alt/point-of-divergence' }
-          ]
-        }
-      ],
+      // 扇区 Alpha：科幻作品（普罗米修斯 + 挽救计划 + 无声的终局）
+      '/prometheus/': sciFiSidebar,
+      '/hail_mary_alt/': sciFiSidebar,
+      '/silent-endgame/': sciFiSidebar,
 
       // 扇区 Gamma：当网址带有 /commentary/ 时，显示评注侧边栏
       '/commentary/': [
