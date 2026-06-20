@@ -110,13 +110,27 @@ export default defineConfig({
       // 扇区 Beta：当网址带有 /aviation/ 时，显示这个航空专区侧边栏
       '/aviation/': [
         {
-          text: '✈️ 航空与工程物理笔记',
+          text: '✈️ 航空动力学',
+          collapsed: false,
+          items: [
+            { text: '飞机为什么能飞？航空史与物理', link: '/aviation/how-planes-fly' },
+            { text: '空速、表速与涡扇引擎的谬误', link: '/aviation/aero-concepts' }
+          ]
+        },
+        {
+          text: '📡 电磁与电子战',
           collapsed: false,
           items: [
             { text: '澄清对隐身技术的常见误解', link: '/aviation/stealth-misconceptions' },
             { text: '进阶隐身物理：从"几何形状"到"相干场"的直觉重构', link: '/aviation/physics-of-stealth' },
-            { text: '飞机为什么能飞？航空史与物理', link: '/aviation/how-planes-fly' },
-            { text: '空速、表速与涡扇引擎的谬误', link: '/aviation/aero-concepts' }
+            { text: '另一个角度：从动物的听觉理解雷达与电子战', link: '/aviation/animal-hearing-radar-ew' }
+          ]
+        },
+        {
+          text: '🤖 人工智能',
+          collapsed: false,
+          items: [
+            { text: '分权促进安全：一种可能的多智能体分布式对齐思路', link: '/aviation/ai-decentralized-alignment' }
           ]
         }
       ]
