@@ -14,7 +14,7 @@ hero:
      link: /aviation/how-planes-fly
    - theme: alt
      text: 评注与书评
-     link: /commentary/hail-mary
+     link: /commentary/
    - theme: alt
      text: 客座文章
      link: /guest-articles/iran-nuclear-program-1
@@ -30,8 +30,11 @@ features:
     details: 抛开科幻的滤镜，回归真实的物理。隐身技术的几何骗局、气动设计的妥协与飞行原理的本质。
     link: /aviation/stealth-misconceptions
   - title: 评注与书评
-    details: 基于硬科幻的物理法则，推演原著的替代可能。《挽救计划》的行星工程逻辑崩盘与组织工程学谬误。
-    link: /commentary/hail-mary
+    details: 《挽救计划》佩特洛娃线捕捞专题：中英文完整文章、原书参数核对与能源收支推演，以及原著评注。
+    link: /commentary/
+  - title: Why Not Harvest Astrophage?
+    details: Read the English article on Petrova-line harvesting, photon-rocket dynamics, and conditional net energy production.
+    link: /commentary/petrova-line-harvesting-en
   - title: 客座文章 (New)
     details: 来自外部作者的深度分析。伊朗核计划的五步路径、工业基础与地缘博弈。
     link: /guest-articles/iran-nuclear-program-1

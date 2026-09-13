@@ -1,5 +1,37 @@
 import { defineConfig } from 'vitepress'
 
+// 捕捞专题在书评与科幻栏目共享入口，正文与推演资料分组。
+const petrovaSidebar = [
+  {
+    text: '佩特洛娃线：专题文章',
+    collapsed: false,
+    items: [
+      { text: '为什么不直接捕捞噬星体？（中文）', link: '/commentary/petrova-line-harvesting' },
+      { text: 'Why Not Harvest Astrophage? (English)', link: '/commentary/petrova-line-harvesting-en' }
+    ]
+  },
+  {
+    text: '佩特洛娃线：推演资料',
+    collapsed: true,
+    items: [
+      { text: '工程架构推演', link: '/hail_mary_alt/petrova-line-harvester' },
+      { text: '原书参数核对', link: '/hail_mary_alt/petrova-line-source-audit' },
+      { text: '飞行史与收支重算', link: '/hail_mary_alt/petrova-line-economics' }
+    ]
+  }
+]
+
+const commentarySidebar = [
+  {
+    text: '📝 评注与书评',
+    items: [
+      { text: '文章目录', link: '/commentary/' },
+      { text: '《挽救计划》核心硬伤与替代方案推演', link: '/commentary/hail-mary' }
+    ]
+  },
+  ...petrovaSidebar
+]
+
 // 科幻作品：三条独立故事线共用同一份侧边栏，按路由前缀复用
 const sciFiSidebar = [
   {
@@ -27,6 +59,7 @@ const sciFiSidebar = [
       { text: '分歧点：叙事正文', link: '/hail_mary_alt/point-of-divergence' }
     ]
   },
+  ...petrovaSidebar,
   {
     text: '⚔️ 无声的终局：现代空战故事',
     collapsed: false,
@@ -49,7 +82,7 @@ export default defineConfig({
       { text: '主终端', link: '/' },
       { text: '科幻作品', link: '/prometheus/lore/the-birth-of-suns' },
       { text: '航空与工程学笔记', link: '/aviation/stealth-misconceptions' },
-      { text: '评注与书评', link: '/commentary/hail-mary' },
+      { text: '评注与书评', link: '/commentary/' },
       { text: '客座文章', link: '/guest-articles/iran-nuclear-program-1' },
       { text: '小工具', link: '/tools/aero-performance-calculator' }
     ],
@@ -62,15 +95,10 @@ export default defineConfig({
       '/silent-endgame/': sciFiSidebar,
 
       // 扇区 Gamma：当网址带有 /commentary/ 时，显示评注侧边栏
-      '/commentary/': [
-        {
-          text: '📝 评注与书评',
-          collapsed: false,
-          items: [
-            { text: '《挽救计划》核心硬伤与替代方案推演', link: '/commentary/hail-mary' }
-          ]
-        }
-      ],
+      '/commentary/': commentarySidebar,
+
+      // 技术资料沿用专题目录，避免阅读时跳回故事章节列表。
+      '/hail_mary_alt/petrova-line-': commentarySidebar,
 
       // 扇区 Delta：当网址带有 /guest-articles/ 时，显示客座文章侧边栏
       '/guest-articles/': [
